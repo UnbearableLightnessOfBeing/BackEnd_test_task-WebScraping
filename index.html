@@ -28,7 +28,7 @@
             const res = await fetch(`http://localhost/WebScraping/api/posts/${id}`);
             let post = await res.json();
             const element = document.querySelector('.postResponse');
-            element.innerHTML =JSON.stringify(post);
+            element.innerHTML = JSON.stringify(post);
         }
         async function updataRating(id, rating){
             let data = {

@@ -31,12 +31,7 @@ class Api {
             print_r(json_encode($posts));
         }
         else{
-            http_response_code(404);
-            $response = [
-                'status' => false,
-                'message' => 'Posts not found'
-            ];
-            print_r(json_encode($response));
+            $this->sendResponse(false, 'Posts not found', 404);
         }
     }
 
@@ -49,12 +44,7 @@ class Api {
             print_r(json_encode($post));
         }
         else{
-            http_response_code(404);
-            $response = [
-                'status' => false,
-                'message' => 'Post not found'
-            ];
-            print_r(json_encode($response));
+            $this->sendResponse(false, 'Post not found', 404);
         }
     }
 
@@ -62,20 +52,20 @@ class Api {
         if($newRating > 0 && $newRating <=10 ){
             $sqlQuery = "UPDATE ". $this->table ." SET rating = '$newRating' WHERE id = '$postId'";
             mysqli_query($this->connecion, $sqlQuery);
-            $response = [
-                'status' => true,
-                'message' => 'Rating has been updated!'
-            ];
-            print_r(json_encode($response));
+            $this->sendResponse(true, 'Rating has been updated!', 200);
         }
         else{
-            http_response_code(404);
-            $response = [
-                'status' => false,
-                'message' => 'Wrong rating (should be 1 to 10)'
-            ];
-            print_r(json_encode($response));
+            $this->sendResponse(false, 'Wrong rating (should be 1 to 10)', 404);
         }
+    }
+
+    private function sendResponse($status, $message, $responseCode){
+        http_response_code($responseCode);
+        $response = [
+            'status' => $status,
+            'message' => $message
+        ];
+        print_r(json_encode($response));
     }
 
 

@@ -5,7 +5,12 @@ require_once('../config/cors.inc.php');
 
 
 $rbcNewsParser = new  NewsParser('https://realty.rbc.ru/?utm_source=topline', 15);
+// $rbcNewsParser = new  NewsParser('https://www.rbc.ru/', 15);
 $rbcNewsParser->setLinkPath('.js-news-feed-list > a');
+// $rbcNewsParser->setTitlePath('.article__wrapper .article__container .article__section .article__title');
+// $rbcNewsParser->setOverviewPath('');
+// $rbcNewsParser->setTextPath('.article__wrapper .article__container .article__section > *');
+// $rbcNewsParser->setPicturePath('.article__wrapper .article__container .article__section .article__image--main img');
 $rbcNewsParser->setTitlePath('.article__content .article__header .article__header__title h1');
 $rbcNewsParser->setOverviewPath('.article__content .article__text__overview span');
 $rbcNewsParser->setTextPath('.article__content .article__text  p');
