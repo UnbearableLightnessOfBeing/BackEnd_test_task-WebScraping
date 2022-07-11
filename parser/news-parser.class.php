@@ -8,10 +8,10 @@ class NewsParser{
     private $count = 0;
 
     private $linkPath = "";
-    private $titlePath = "";
-    private $overviewPath = "";
-    private $textPath = "";
-    private $picturePath = "";
+    private $titlePath = array();
+    private $overviewPath = array();
+    private $textPath = array();
+    private $picturePath = array();
 
     private $linkArray = array();
     private $posts = array();
@@ -39,9 +39,11 @@ class NewsParser{
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
         $result = curl_exec($ch);
+        // echo $result;
         curl_close($ch);
         return $result;
     }
@@ -49,17 +51,25 @@ class NewsParser{
     public function setLinkPath($linkPath) {
         $this->linkPath = $linkPath;
     }
-    public function setTitlePath($titlePath) {
-        $this->titlePath = $titlePath;
+    public function setTitlePath(...$titlePath) {
+        foreach($titlePath as $option){
+            $this->titlePath[] = $option;
+        }
     }
-    public function setOverviewPath($overviewPath) {
-        $this->overviewPath = $overviewPath;
+    public function setOverviewPath(...$overviewPath) {
+        foreach($overviewPath as $option){
+            $this->overviewPath[] = $option;
+        }
     }
-    public function setTextPath($textPath) {
-        $this->textPath = $textPath;
+    public function setTextPath(...$textPath) {
+        foreach($textPath as $option){
+            $this->textPath[] = $option;
+        }
     }
-    public function setPicturePath($picturePath) {
-        $this->picturePath = $picturePath;
+    public function setPicturePath(...$picturePath) {
+        foreach($picturePath as $option){
+            $this->picturePath[] = $option;
+        }
     }
 
     public function parseNews(){
@@ -71,10 +81,12 @@ class NewsParser{
         $linkList = $this->pq->find($this->linkPath);
         $counter = 1;
         foreach($linkList as $link){
-            $this->linkArray[] = pq($link)->attr('href');
-            if($counter == $this->count){
-                break;
-            }else $counter++;
+            if($counter >= $this->count){
+                return;
+            }else{
+                $counter++;
+                $this->linkArray[] = pq($link)->attr('href');
+            }
         }
     }
     public function showPostLinks(){
@@ -87,17 +99,49 @@ class NewsParser{
         foreach($this->linkArray as $link){
             $post = $this->setUrl($link);
             $pq = phpQuery::newDocument($post);
-
-            $this->posts[] = [
-                "title" => $this->getTextElement($pq, $this->titlePath),
-                "overview" => $this->getTextElement($pq, $this->overviewPath),
-                "text" => $this->getTextElement($pq, $this->textPath),
-                "picture" => $pq->find($this->picturePath)->attr('src'),
-                "rating" => rand(1,10),
-                "link" => $link
-            ];
+            $index = 0;
+            do{
+                if($index != 0){
+                    array_pop($this->posts);
+                }
+                $this->posts[] = [
+                    "title" => $this->getTextElement($pq, $this->titlePath[$index]),
+                    "overview" => $this->getTextElement($pq, $this->overviewPath[$index]),
+                    "text" => $this->getTextElement($pq, $this->textPath[$index]),
+                    // "picture" => $pq->find($this->picturePath[$index])->attr('src'),
+                    "picture" => $this->filterPictureLink($pq->find($this->picturePath[$index])->attr('src'), $link),
+                    "rating" => rand(1,10),
+                    "link" => $link
+                ];
+                $index ++;
+            }
+            // if there is no title and text in a post, then try the next settings
+            while(!$this->posts[count($this->posts)-1]['title'] &&  
+                   !$this->posts[count($this->posts)-1]['text']);
         }
     }
+
+    private function filterPictureLink($pictureLink, $postLink){
+        if($pictureLink && substr($pictureLink, 0 , 4) != 'http'){
+            return $this->changePictureLink($pictureLink, $postLink);
+        }else {
+            return $pictureLink;
+        }
+    }
+
+    private function changePictureLink($pictureLink, $postLink){
+        $domainEnding = $this->findDomainEnding($postLink, '.com/', '.ru/'); // more endings can be added
+        return substr($postLink, 0, strpos($postLink, $domainEnding) + strlen($domainEnding)) . substr($pictureLink, 2);
+    }
+
+    private function findDomainEnding($postLink, ...$endings){
+        foreach($endings as $ending){
+            if(strpos($postLink, $ending)){
+                return $ending;
+            }
+        }
+    }
+
     private function getTextElement($pq ,$elementPath){
         if($elementPath !== "" && $elementPath !== NULL){
             return $pq->find($elementPath)->text();
