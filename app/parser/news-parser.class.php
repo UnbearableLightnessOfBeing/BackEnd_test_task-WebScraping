@@ -1,6 +1,14 @@
 <?php
-require_once('../phpQuery/phpQuery/phpQuery.php');
-require_once('../config/db.class.php');
+
+
+namespace App\Parser;
+
+
+require_once(__DIR__ . '/../phpQuery/phpQuery/phpQuery.php');
+require_once(__DIR__ . '/../config/db.class.php');
+require_once(__DIR__ . '/../Model.php');
+
+// use App\Model;
 
 class NewsParser{
 
@@ -19,7 +27,7 @@ class NewsParser{
 
     public function __construct($url, $count){
         $result = $this->setUrl($url);
-        $this->pq = phpQuery::newDocument($result);
+        $this->pq = \phpQuery::newDocument($result);
         $this->count = $count;
     }
 
@@ -98,7 +106,7 @@ class NewsParser{
     private function getPosts(){
         foreach($this->linkArray as $link){
             $post = $this->setUrl($link);
-            $pq = phpQuery::newDocument($post);
+            $pq = \phpQuery::newDocument($post);
             $index = 0;
             do{
                 if($index != 0){
@@ -156,25 +164,31 @@ class NewsParser{
         echo '</pre>';
     }
 
+    public function posts() {
+        return $this->posts;
+    }
+
     public function loadToDB(){
-        $db = new Database();
+        $db = new \Database();
         //clean up the database and reset the autoincrement
         $sqlQuery = "DELETE FROM posts";
         mysqli_query($db->connect(), $sqlQuery);
+
+
         $sqlQuery = "ALTER TABLE posts AUTO_INCREMENT = 1";
         mysqli_query($db->connect(), $sqlQuery);
+
 
         //putting data into the database
         foreach($this->posts as $post){
             $sqlQuery = "insert into posts (title, overview, text, picture, rating, link) values ('$post[title]', '$post[overview]', '$post[text]',
              '$post[picture]', '$post[rating]', '$post[link]')";
             $result = mysqli_query($db->connect(), $sqlQuery);
-            if(!$result){
-                $sqlQuery = null;
+
+            if(!$sqlQuery){
                 // header("location: ../index.php?error=queryfailed");
-                exit("Failed to push the data into the database.");
+                exit("Failed to push data into the database.");
             }
-            $sqlQuery = null;
         }
     }
 }

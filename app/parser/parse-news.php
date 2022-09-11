@@ -1,13 +1,16 @@
 <?php
 
-require_once('./news-parser.class.php');
-require_once('../config/cors.inc.php');
+namespace App\Parser;
+
+
+require_once(__DIR__ . './news-parser.class.php');
+require_once(__DIR__ . '/../config/cors.inc.php');
 
 // $rbcNewsParser = new  NewsParser('https://realty.rbc.ru/?utm_source=topline', 15);
 $rbcNewsParser = new  NewsParser('https://www.rbc.ru/', 15);
 $rbcNewsParser->setLinkPath('.js-news-feed-list > .news-feed__item');
 
-// rbc.ru site publishes different kinds of news posts with different DOM structure, so the parser looks for appropriate set paths to each post
+// rbc.ru site publishes different kinds of news posts with different DOM structure, so the parser looks for an appropriate set of paths to each post
 // сайт rbc.ru публикует различные виды новостных постов с разной структурой DOM, поэтому парсер ищет подходящие параметры для каждого поста
 
 $rbcNewsParser->setTitlePath('.article__content .article__header .article__header__title h1',
