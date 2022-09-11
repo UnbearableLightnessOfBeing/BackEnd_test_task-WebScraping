@@ -19,7 +19,15 @@ class NewsController
 
     public function index(): string
     {
-        $posts = $this->newsPosts->getPosts();
+        try {
+            $posts = $this->newsPosts->getPosts();
+        } catch (\App\Exceptions\NoPostsException) {
+            http_response_code(200);
+            return json_encode([
+                'status' => '200',
+                'message' => 'There is not posts'
+            ]);
+        }
 
         return json_encode($posts);
     }
@@ -64,7 +72,17 @@ class NewsController
     }
 
     public function refresh() {
-        $this->newsPosts->refreshPosts();
+        
+        try {
+            $this->newsPosts->refreshPosts();
+        } catch (\Exception) {
+            http_response_code(500);
+            return json_encode([
+                'status' => '500',
+                'message' => 'Some error occured'
+            ]);
+        }
+
         http_response_code(200);
             return json_encode([
                 'status' => '200',

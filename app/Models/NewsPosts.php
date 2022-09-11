@@ -8,6 +8,8 @@ require_once __DIR__ . '/../parser/news-parser.class.php';
 
 use App\Model;
 use App\Exceptions\RouteNotFoundException;
+use App\Exceptions\NoPostsException;
+use Exception;
 
 class NewsPosts extends Model {
 
@@ -18,7 +20,7 @@ class NewsPosts extends Model {
         $stmt->execute();
 
         if($stmt->rowCount() == 0) {
-            throw new RouteNotFoundException;
+            throw new NoPostsException('No posts');
         }
 
         $table = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -78,27 +80,26 @@ class NewsPosts extends Model {
 
         $rbcNewsParser->parseNews();
         // $rbcNewsParser->showPostLinks();
-        $rbcNewsParser->showPosts();
+        // $rbcNewsParser->showPosts();
         
 
 
-        // $posts = $rbcNewsParser->posts();
+       try {
+            $posts = $rbcNewsParser->posts();
 
-        // $stmnt = $this->db->prepare('DELETE FROM posts');
-        // $stmnt->execute();
+            $stmnt = $this->db->prepare('DELETE FROM posts');
+            $stmnt->execute();
 
-        // $stmnt = $this->db->prepare('ALTER TABLE posts AUTO_INCREMENT = 1');
-        // $stmnt->execute();
+            $stmnt = $this->db->prepare('ALTER TABLE posts AUTO_INCREMENT = 1');
+            $stmnt->execute();
 
-        // //putting data into the database
-        // foreach($posts as $post){
-        //     $stmnt->prepare("insert into posts (title, overview, text, picture, rating, link) values (?, ?, ?, ?, ?, ?)");
-        //     $stmnt->execute($post['title'], $post['overview'], $post['text'], $post['picture'], $post['tating'], $post['link']);
-
-        //     if(!$stmnt){
-        //         // header("location: ../index.php?error=queryfailed");
-        //         exit("Failed to push data into the database.");
-        //     }
-        // }
+            //putting data into the database
+            foreach($posts as $post){
+                $stmnt = $this->db->prepare('insert into posts (title, overview, text, picture, rating, link) values (?, ?, ?, ?, ?, ?)');
+                $stmnt->execute([$post['title'], $post['overview'], $post['text'], $post['picture'], $post['rating'], $post['link']]);
+            }
+       } catch (\PDOException) {
+           throw new Exception('Error during database managing');
+       }
     }
 }
