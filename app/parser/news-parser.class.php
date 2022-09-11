@@ -5,7 +5,6 @@ namespace App\Parser;
 
 
 require_once(__DIR__ . '/../phpQuery/phpQuery/phpQuery.php');
-require_once(__DIR__ . '/../config/db.class.php');
 require_once(__DIR__ . '/../Model.php');
 
 // use App\Model;

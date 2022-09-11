@@ -41,7 +41,9 @@ class NewsController
         return json_encode($post);
     }
 
-    public function edit(int $id): string {
+    public function edit(): string {
+
+        $id = (int) App::getArrayOfParams($_SERVER['REQUEST_URI'])[1] ?? 0;
 
         $putdata = file_get_contents("php://input");
         $decoded = json_decode($putdata, true);
