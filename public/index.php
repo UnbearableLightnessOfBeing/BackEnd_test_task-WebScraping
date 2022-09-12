@@ -18,10 +18,10 @@ $dotenv->load();
 $router = new Router();
 
 $router
-    ->get('/posts', [NewsController::class, 'index'])
-    ->get('/posts/{id}', [NewsController::class, 'show'])
-    ->put('/posts/{id}', [NewsController::class, 'edit'])
-    ->get('/refresh', [NewsController::class, 'refresh']);
+    ->get('/posts', [NewsController::class, 'index'])  // shows all posts in the database
+    ->get('/posts/{id}', [NewsController::class, 'show'])  // shows a particular post 
+    ->put('/posts/{id}', [NewsController::class, 'edit'])  // changes rating of a news post
+    ->get('/refresh', [NewsController::class, 'refresh']);  // deploys the parser and updates posts in the datebase
 
 
 (new App(

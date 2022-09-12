@@ -15,7 +15,9 @@ class NewsPosts extends Model {
 
     public function getPosts(): array {
 
-        $stmt = $this->db->prepare('select * from posts;');
+        $this->overrideCors();
+
+        $stmt = $this->db->prepare('select id, title, overview, substring(text, 1, 200) as text, rating from posts;');
 
         $stmt->execute();
 
@@ -23,14 +25,30 @@ class NewsPosts extends Model {
             throw new NoPostsException('No posts');
         }
 
-        $table = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $rawData = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // var_dump($rawData);
+
+        $table = array();
+
+        foreach($rawData as $post) {
+            array_push($table, array(
+                'title' => $post['title'],
+                'overview' => $post['overview'],
+                'text' => $post['text'] . '...',
+                'rating' => (int)$post['rating'],
+                'link' => 'http://localhost/posts/' . $post['id']
+            ));
+        }
         
         return $table;
     }
 
     public function getSinglePost(int $id) {
+
+        $this->overrideCors();
         
-        $stmt = $this->db->prepare('select * from posts where id = ?;');
+        $stmt = $this->db->prepare('SELECT title, overview, text, picture, rating FROM posts WHERE id = ? LIMIT 0,1');
 
         $stmt->execute([$id]);
 
@@ -101,5 +119,30 @@ class NewsPosts extends Model {
        } catch (\PDOException) {
            throw new Exception('Error during database managing');
        }
+    }
+
+
+    private function overrideCors() {
+        // Allow from any origin
+        if (isset($_SERVER['HTTP_ORIGIN'])) {
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS");
+            header("Access-Control-Allow-Headers: Origin, Authorization, X-Requested-With, Content-Type, Accept");
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Max-Age: 86400');    // cache for 1 day
+        }
+    
+        // Access-Control headers are received during OPTIONS requests
+        if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    
+            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
+                // may also be using PUT, PATCH, HEAD etc
+                header("Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS");
+    
+            if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
+                header("Access-Control-Allow-Headers: Origin, Authorization, X-Requested-With, Content-Type, Accept");
+    
+            exit(0);
+        }
     }
 }
